@@ -45,6 +45,13 @@ def createTeam(firstIndex, secondIndex, isRed,
 # Agents #
 ##########
 
+"""
+Un agent est en défense s'il est de son côté et en attaque s'il est du côté adverse.
+Pathfinding de Marlon pour définir une politique initiale.
+Ghostbusters de Lorenzo pour donner une position (x, y) "précise" des adversaires.
+Maxime/Cécile définissent une politique de plus en plus compétente.
+"""
+
 class DummyAgent(CaptureAgent):
   """
   A Dummy agent to serve as an example of the necessary agent structure.
