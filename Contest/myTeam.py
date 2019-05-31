@@ -16,7 +16,7 @@ from captureAgents import CaptureAgent
 import random, time, util
 from game import Directions
 import game
-from Project3_Reinforcement_Learning import qlearningAgents
+from Project3_Reinforcement_Learning.qlearningAgents import ApproximateQAgent
 
 #################
 # Team creation #
