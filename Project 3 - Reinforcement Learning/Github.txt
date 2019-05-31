@@ -1,0 +1,4 @@
+Le plus complet -> https://github.com/PointerFLY/Pacman-AI
+Deuxième plus complet -> https://github.com/worldofnick/pacman-AI
+Autres -> https://github.com/advaypakhale/Berkeley-AI-Pacman-Projects
+       -> https://github.com/karlapalem/UC-Berkeley-AI-Pacman-Project
