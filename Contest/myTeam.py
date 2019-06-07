@@ -16,7 +16,7 @@ from captureAgents import CaptureAgent
 import random, time, util
 from game import Directions
 import game
-from Project3_Reinforcement_Learning.qlearningAgents import ApproximateQAgent
+from util import nearestPoint
 
 #################
 # Team creation #
@@ -79,6 +79,7 @@ class DummyAgent(CaptureAgent):
     on initialization time, please take a look at
     CaptureAgent.registerInitialState in captureAgents.py.
     '''
+    self.start = gameState.getAgentPosition(self.index)
     CaptureAgent.registerInitialState(self, gameState)
 
     '''
@@ -97,4 +98,64 @@ class DummyAgent(CaptureAgent):
     '''
 
     return random.choice(actions)
+  
+  def getSuccessor(self, gameState, action):
+    """
+    Finds the next successor which is a grid position (location tuple).
+    """
+    successor = gameState.generateSuccessor(self.index, action)
+    pos = successor.getAgentState(self.index).getPosition()
+    if pos != nearestPoint(pos):
+      # Only half a grid position was covered
+      return successor.generateSuccessor(self.index, action)
+    else:
+      return successor
+    
+  def evaluate(self, gameState, action):
+    """
+    Computes a linear combination of features and feature weights
+    """
+    features = self.getFeatures(gameState, action)
+    weights = self.getWeights(gameState, action)
+    return features * weights
+  
+  def getFeatures(self, gameState, action):
+    """
+    Returns a counter of features for the state
+    """
+    features = util.Counter()
+    successor = self.getSuccessor(gameState, action)
+    features['successorScore'] = self.getScore(successor)
+    return features
+  
+  def getWeights(self, gameState, action):
+    """
+    Normally, weights do not depend on the gamestate.  They can be either
+    a counter or a dictionary.
+    """
+    return {'successorScore': 1.0}
 
+class AgentStructure(CaptureAgent):
+  """
+  An agent should be able to change from offensive to 
+  defensive depending on the information it has access 
+  to. What will change is the algorithm used to choose
+  actions; Q-learning or Alpha-Beta.
+  """
+  
+  def getFeatures(self, gameState, action):
+    """
+    Here is the place where features are chose for agents.
+    Approximate Q-learning has some defined features
+    already and weights are adapted according to the game
+    evolution.
+    Alpha-Beta also has some pre-defined features and 
+    weights also !!!(A vérifier)!!!
+    """
+    
+  def getWeights(self, gameState, action):
+    """
+    Here is where the weights of the features are determined
+    and applied to the game. These weights will change as
+    the game evolves and actions are executed.
+    """
