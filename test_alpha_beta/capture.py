@@ -65,7 +65,7 @@ import keyboardAgents
 KILL_POINTS = 0
 SONAR_NOISE_RANGE = 13 # Must be odd
 SONAR_NOISE_VALUES = [i - (SONAR_NOISE_RANGE - 1)/2 for i in range(SONAR_NOISE_RANGE)]
-SIGHT_RANGE = 5 # Manhattan distance
+SIGHT_RANGE = 250 # Manhattan distance
 MIN_FOOD = 2
 TOTAL_FOOD = 60
 
