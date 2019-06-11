@@ -104,8 +104,8 @@ class ReinforcementAgent(ValueEstimationAgent):
 
     def update(self, state, action, nextState, reward):
         """
-                This class will call this function, which you write, after
-                observing a transition and reward
+        This class will call this function, which you write, after
+        observing a transition and reward
         """
         util.raiseNotDefined()
 
