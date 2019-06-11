@@ -13,10 +13,11 @@
 
 
 from captureAgents import CaptureAgent
-import random, time, util
+import distanceCalculator
+import random, time, util, sys
 from game import Directions
-from game import Agent
 import game
+from util import nearestPoint
 
 
 #################
@@ -93,18 +94,21 @@ class DummyAgent(CaptureAgent):
 
     return random.choice(actions)
 
-class MultiAgentSearchAgent(Agent):
-
-    """ /!\ il reste a corriger et adapter init """
-    """
-    def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 0 # Pacman is always agent index 0
-        self.evaluationFunction = util.lookup(evalFn, globals())
-        self.depth = int(depth)
-    """
-
-
 class AlphaBetaAgent(CaptureAgent):
+
+    evalFn = 'scoreEvaluationFunction'
+    index = 0 # Pacman is always agent index 0
+    depth = 2
+
+    def scoreEvaluationFunction(self,currentGameState):
+        """
+          This default evaluation function just returns the score of the state.
+          The score is the same one displayed in the Pacman GUI.
+
+          This evaluation function is meant for use with adversarial search agents
+          (not reflex agents).
+        """
+        return currentGameState.getScore()
 
     def registerInitialState(self, gameState):
         CaptureAgent.registerInitialState(self, gameState)
@@ -125,7 +129,7 @@ class AlphaBetaAgent(CaptureAgent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = gameState.generatePacmanSuccessor(action)
+        successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
@@ -157,7 +161,7 @@ class AlphaBetaAgent(CaptureAgent):
         def maxLevel(gameState,depth,alpha, beta):
             currDepth = depth + 1
             if gameState.isOver() or currDepth==self.depth:   #Terminal Test
-                return self.evaluationFunction(gameState)
+                return self.scoreEvaluationFunction(gameState)
             maxvalue = -999999
             actions = gameState.getLegalActions(0)   #liste des actions legales pour le pacman
             alpha1 = alpha
@@ -174,7 +178,7 @@ class AlphaBetaAgent(CaptureAgent):
         def minLevel(gameState,depth,agentIndex,alpha,beta):
             minvalue = 999999
             if gameState.isOver():   #Terminal Test
-                return self.evaluationFunction(gameState)
+                return self.scoreEvaluationFunction(gameState)
             actions = gameState.getLegalActions(agentIndex)
             beta1 = beta
             for action in actions:
