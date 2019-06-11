@@ -233,10 +233,10 @@ class ApproxQAgent(CaptureAgent):
     self.weights += features
     
   def getPolicy(self, state):
-        return self.computeActionFromQValues(state)
+    return self.computeActionFromQValues(state)
 
   def getValue(self, state):
-      return self.computeValueFromQValues(state)
+    return self.computeValueFromQValues(state)
     
   def computeValueFromQValues(self, state):
     """
