@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # myTeam.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
