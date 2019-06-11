@@ -216,6 +216,14 @@ class ApproxQAgent(CaptureAgent):
 
     return self.getWeights() * self.featExtractor.getFeatures(state, action) # Equivalent to calculating a linear formula
   
+  def getLegalActions(self,state):
+    """
+      Get the actions available for a given
+      state. This is what you should use to
+      obtain legal actions for a state
+    """
+    return self.actionFn(state)
+  
   def update(self, state, action, nextState, reward):
     """
 		Should update your weights based on transition
