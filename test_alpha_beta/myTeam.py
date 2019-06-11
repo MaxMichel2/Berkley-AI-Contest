@@ -185,7 +185,7 @@ class AlphaBetaAgent(CaptureAgent):
                         return minvalue
                     beta1 = min(beta1,minvalue)
                 else:
-                    minvalue = min(minvalue,minLevel(successor,depth,agentIndex+1,alpha,beta1))
+                    minvalue = min(minvalue,minLevel(successor,depth,(agentIndex+1)%4,alpha,beta1))
                     if minvalue < alpha:
                         return minvalue
                     beta1 = min(beta1,minvalue)
