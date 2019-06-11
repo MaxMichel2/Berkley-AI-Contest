@@ -56,7 +56,7 @@ class DummyAgent(CaptureAgent):
   """
 
   def registerInitialState(self, gameState):
-    """ 
+    """
     This method handles the initial setup of the
     agent to populate useful fields (such as what team
     we're on).
