@@ -808,6 +808,8 @@ def readCommand( argv ):
                     help=default('How many episodes are training (suppresses output)'), default=0)
   parser.add_option('-c', '--catchExceptions', action='store_true', default=False,
                     help='Catch exceptions and enforce time limits')
+  parser.add_option('-a','--agentArgs',dest='agentArgs',
+                    help='Comma separated values sent to agent. e.g. "opt1=val1,opt2,opt3=val3"')
 
   options, otherjunk = parser.parse_args(argv)
   assert len(otherjunk) == 0, "Unrecognized options: " + str(otherjunk)

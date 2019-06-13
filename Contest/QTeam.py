@@ -144,8 +144,8 @@ class ApproxQAgent(CaptureAgent):
   actions; Q-learning or Alpha-Beta.
   """
   # All the following function are those used in the Project 3 Approximate Q Agent
-  def __init__(self, extractor='IdentityExtractor', actionFn = None, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
-    self.featExtractor = util.lookup(extractor, globals())()
+  def __init__(self, extractor='SimpleExtractor', actionFn = None, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
+    self.featExtractor = util.lookup('SimpleExtractor', globals())()
     args['epsilon'] = epsilon
     args['gamma'] = gamma
     args['alpha'] = alpha
