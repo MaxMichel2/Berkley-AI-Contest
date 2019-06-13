@@ -557,7 +557,6 @@ def lookup(name, namespace):
     Get a method or class from any imported module from its name.
     Usage: lookup(functionName, globals())
     """
-    print name
     dots = name.count('.')
     if dots > 0:
         moduleName, objName = '.'.join(name.split('.')[:-1]), name.split('.')[-1]

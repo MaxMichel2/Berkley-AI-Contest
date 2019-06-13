@@ -144,8 +144,8 @@ class ApproxQAgent(CaptureAgent):
   actions; Q-learning or Alpha-Beta.
   """
   # All the following function are those used in the Project 3 Approximate Q Agent
-  def __init__(self, extractor='SimpleExtractor', actionFn = None, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
-    self.featExtractor = util.lookup('SimpleExtractor', globals())()
+  def __init__(self, index, extractor='SimpleExtractor', actionFn = None, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, timeForComputing = .1, **args):
+    self.featExtractor = util.lookup('featureExtractors.SimpleExtractor', globals())()
     args['epsilon'] = epsilon
     args['gamma'] = gamma
     args['alpha'] = alpha
@@ -162,10 +162,30 @@ class ApproxQAgent(CaptureAgent):
     self.discount = float(gamma)
     self.weights = util.Counter()
     self.values = util.Counter()
+    # Agent index for querying state
+    self.index = index
+
+    # Whether or not you're on the red team
+    self.red = None
+
+    # Agent objects controlling you and your teammates
+    self.agentsOnTeam = None
+
+    # Maze distance calculator
+    self.distancer = None
+
+    # A history of observations
+    self.observationHistory = []
+
+    # Time to spend each turn on computing maze distances
+    self.timeForComputing = timeForComputing
+
+    # Access to the graphics
+    self.display = None
     
-  def final(self, state):
-    deltaReward = state.getScore() - self.lastState.getScore()
-    self.observeTransition(self.lastState, self.lastAction, state, deltaReward)
+  def final(self, gameState):
+    deltaReward = gameState.getScore() - self.getPreviousObservation.getScore()
+    self.observeTransition(self.getPreviousObservation, self.lastAction, gameState, deltaReward)
     self.stopEpisode()
 
     # Make sure we have this var
@@ -198,35 +218,63 @@ class ApproxQAgent(CaptureAgent):
     if self.episodesSoFar == self.numTraining:
         msg = 'Training Done (turning off epsilon and alpha)'
         print '%s\n%s' % (msg,'-' * len(msg))
+  
+  def observeTransition(self, gameState,action,nextState,deltaReward):
+      """
+          Called by environment to inform agent that a transition has
+          been observed. This will result in a call to self.update
+          on the same arguments
+
+          NOTE: Do *not* override or call this function
+      """
+      self.episodeRewards += deltaReward
+      self.update(gameState,action,nextState,deltaReward)
         
-  def observationFunction(self, state):
+  def observationFunction(self, gameState):
     """
         This is where we ended up after our last action.
         The simulation should somehow ensure this is called
     """
-    if not self.lastState is None:
-        reward = state.getScore() - self.lastState.getScore()
-        self.observeTransition(self.lastState, self.lastAction, state, reward)
-    return state
+    if not CaptureAgent.getPreviousObservation is None:
+        reward = gameState.getScore() - CaptureAgent.getScore(CaptureAgent, CaptureAgent.getPreviousObservation)
+        self.observeTransition(CaptureAgent.getPreviousObservation, self.lastAction, gameState, reward)
+    return gameState
   
-  def getQValue(self, state, action):
+  def setEpsilon(self, epsilon):
+        self.epsilon = epsilon
+
+  def setLearningRate(self, alpha):
+      self.alpha = alpha
+
+  def setDiscount(self, discount):
+      self.discount = discount
+
+  def doAction(self,state,action):
+      """
+          Called by inherited class when
+          an action is taken in a state
+      """
+      self.lastState = state
+      self.lastAction = action
+  
+  def getQValue(self, gameState, action):
     """
 		  Should return Q(state,action) = w * featureVector
 		  where * is the dotProduct operator
 		"""
     "*** YOUR CODE HERE ***"
 
-    return self.getWeights() * self.featExtractor.getFeatures(state, action) # Equivalent to calculating a linear formula
+    return self.getWeights() * self.featExtractor.getFeatures(gameState, action) # Equivalent to calculating a linear formula
   
-  def getLegalActions(self,state):
+  def getLegalActions(self,gameState):
     """
       Get the actions available for a given
       state. This is what you should use to
       obtain legal actions for a state
     """
-    return self.actionFn(state)
+    return self.actionFn(gameState)
   
-  def update(self, state, action, nextState, reward):
+  def update(self, gameState, action, nextState, reward):
     """
 		Should update your weights based on transition
 		"""
@@ -237,18 +285,18 @@ class ApproxQAgent(CaptureAgent):
       for key in counter.keys():
         counter[key] *= multiplier
 
-    difference = reward + self.discount * self.getValue(nextState) - self.getQValue(state, action) # Difference formula from Approximate Q-learning
-    features = self.featExtractor.getFeatures(state, action) # Get the features of the environment
+    difference = reward + self.discount * self.getValue(nextState) - self.getQValue(gameState, action) # Difference formula from Approximate Q-learning
+    features = self.featExtractor.getFeatures(gameState, action) # Get the features of the environment
     multiplyAll(features, (self.alpha * difference))
     self.weights += features
     
-  def getPolicy(self, state):
-    return self.computeActionFromQValues(state)
+  def getPolicy(self, gameState):
+    return self.computeActionFromQValues(gameState)
 
-  def getValue(self, state):
-    return self.computeValueFromQValues(state)
+  def getValue(self, gameState):
+    return self.computeValueFromQValues(gameState)
     
-  def computeValueFromQValues(self, state):
+  def computeValueFromQValues(self, gameState):
     """
     Returns max_action Q(state,action)
     where the max is over legal actions.  Note that if
@@ -257,14 +305,14 @@ class ApproxQAgent(CaptureAgent):
     """
     "*** YOUR CODE HERE ***"
 
-    legalActions = self.getLegalActions(state) # Fetch all possible actions at the given state
+    legalActions = self.getLegalActions(gameState) # Fetch all possible actions at the given state
 
     if not legalActions: # No legal actions indicates we're in the terminal state
       return 0.0
 
-    return self.getQValue(state, self.getPolicy(state)) # Gets the Q-value from the state and policy at the given state
+    return self.getQValue(gameState, self.getPolicy(gameState)) # Gets the Q-value from the state and policy at the given state
 		
-  def computeActionFromQValues(self, state):
+  def computeActionFromQValues(self, gameState):
 		"""
 		Compute the best action to take in a state.  Note that if there
 		are no legal actions, which is the case at the terminal state,
@@ -272,12 +320,12 @@ class ApproxQAgent(CaptureAgent):
 		"""
 		"*** YOUR CODE HERE ***"
 
-		legalActions = self.getLegalActions(state) # Fetch all possible actions at the given state
+		legalActions = self.getLegalActions(gameState) # Fetch all possible actions at the given state
 
 		if not legalActions: # No legal actions indicates we're in the terminal state
 			return None
 
-		return max(legalActions, key=lambda action: self.getQValue(state, action)) # Get the maximum Q-value and return the corresponding action
+		return max(legalActions, key=lambda action: self.getQValue(gameState, action)) # Get the maximum Q-value and return the corresponding action
   
   def getWeights(self, gameState, action):
     """
