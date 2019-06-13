@@ -13,11 +13,10 @@
 
 
 from captureAgents import CaptureAgent
-import distanceCalculator
-import random, time, util, sys
+import random, time, util
 from game import Directions
+from game import Agent
 import game
-from util import nearestPoint
 
 
 #################
@@ -94,48 +93,30 @@ class DummyAgent(CaptureAgent):
 
     return random.choice(actions)
 
+
 class AlphaBetaAgent(CaptureAgent):
-
     evalFn = 'scoreEvaluationFunction'
-    index = 0 # Pacman is always agent index 0
+    index = 0
     depth = 2
-
-    def scoreEvaluationFunction(self,currentGameState):
-        """
-          This default evaluation function just returns the score of the state.
-          The score is the same one displayed in the Pacman GUI.
-
-          This evaluation function is meant for use with adversarial search agents
-          (not reflex agents).
-        """
-        return currentGameState.getScore()
 
     def registerInitialState(self, gameState):
         CaptureAgent.registerInitialState(self, gameState)
 
-    def evaluationFunction(self, currentGameState, action):
-        """
-        Design a better evaluation function here.
 
-        The evaluation function takes in the current and proposed successor
-        GameStates (pacman.py) and returns a number, where higher numbers are better.
 
-        The code below extracts some useful information from the state, like the
-        remaining food (newFood) and Pacman position after moving (newPos).
-        newScaredTimes holds the number of moves that each ghost will remain
-        scared because of Pacman having eaten a power pellet.
+    def evaluatFunctionPacman(self, currentGameState, action, agentIndex):
 
-        Print out these variables to see what you're getting, then combine them
-        to create a masterful evaluation function.
-        """
         # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
+        successor= gameState.generateSuccessor(agentIndex,action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
+        """ Informations de position et d'etat en consderant les index 1,3 et 2,4 """
+
+
+
         #disctance aux ghosts
         #manhattanDistance distance de bloc a bloc
         closestghost = min([manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates])
@@ -155,65 +136,55 @@ class AlphaBetaAgent(CaptureAgent):
         #calcule un score
         return (-2 * closestfood) + ghost_dist - (100*len(foodList))
 
+
+    #def evaluatFunctionPacman(self, currentGameState, action):
+
+
     def chooseAction(self, gameState):
 
+
+        def scoreEvaluationFunction(currentGameState):
+             return currentGameState.getScore()
+
         #Score maximal pour le Pacman
-        def maxLevel(gameState,depth,alpha, beta):
+        def maxLevel(gameState,depth):
             currDepth = depth + 1
             if gameState.isOver() or currDepth==self.depth:   #Terminal Test
-                return self.scoreEvaluationFunction(gameState)
+                return scoreEvaluationFunction(gameState)
             maxvalue = -999999
             actions = gameState.getLegalActions(0)   #liste des actions legales pour le pacman
-            alpha1 = alpha
             for action in actions:
                 successor= gameState.generateSuccessor(0,action)    #les coups laisses au choix du fantome
-                maxvalue = max (maxvalue,minLevel(successor,currDepth,1,alpha1,beta))   #fonction reccursive minimax
-                if maxvalue > beta:
-                    return maxvalue
-                alpha1 = max(alpha1,maxvalue)
+                maxvalue = max (maxvalue,minLevel(successor,currDepth,1))   #fonction reccursive minimax
 
             return maxvalue
 
         #Score minimal pour un ghost
-        def minLevel(gameState,depth,agentIndex,alpha,beta):
+        def minLevel(gameState,depth,agentIndex):
             minvalue = 999999
             if gameState.isOver():   #Terminal Test
-                return self.scoreEvaluationFunction(gameState)
+                return scoreEvaluationFunction(gameState)
             actions = gameState.getLegalActions(agentIndex)
-            beta1 = beta
+
             for action in actions:
                 successor= gameState.generateSuccessor(agentIndex,action)
                 if agentIndex == (gameState.getNumAgents()-1):
-                    minvalue = min (minvalue,maxLevel(successor,depth,alpha,beta1))
-                    if minvalue < alpha:
-                        return minvalue
-                    beta1 = min(beta1,minvalue)
+                    minvalue = min (minvalue,maxLevel(successor,depth))
                 else:
-                    minvalue = min(minvalue,minLevel(successor,depth,(agentIndex+1)%4,alpha,beta1))
-                    if minvalue < alpha:
-                        return minvalue
-                    beta1 = min(beta1,minvalue)
+                    minvalue = min(minvalue,minLevel(successor,depth,(agentIndex+1)%4))
 
             return minvalue
 
-
-        # Alpha-Beta Pruning
         actions = gameState.getLegalActions(0)
         currentScore = -999999
         returnAction = ''
-        alpha = -999999
-        beta = 999999
         for action in actions:
             nextState = gameState.generateSuccessor(0,action)
             # Next level is a min level. Hence calling min for successors of the root.
-            score = minLevel(nextState,0,1,alpha,beta)
+            score = minLevel(nextState,0,1)
             # Choosing the action which is Maximum of the successors.
             if score > currentScore:
                 returnAction = action
                 currentScore = score
-            # Updating alpha value at root.
-            if score > beta:
-                return returnAction
-            alpha = max(alpha,score)  #calcul du meilleur coup pour Pacman
 
         return returnAction
