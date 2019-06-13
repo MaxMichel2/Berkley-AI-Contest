@@ -104,18 +104,16 @@ class AlphaBetaAgent(CaptureAgent):
 
 
 
-    def evaluatFunctionPacman(self, currentGameState, action, agentIndex):
+    def evalFunctionPacman(self, currentGameState, agentIndex):
 
         # Useful information you can extract from a GameState (pacman.py)
-        successor= gameState.generateSuccessor(agentIndex,action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
+        #successor= gameState.generateSuccessor(agentIndex,action)
+        newPos = currentGameState.getPosition()
+        newFood = currentGameState.getFood()
+        newGhostStates = currentGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         """ Informations de position et d'etat en consderant les index 1,3 et 2,4 """
-
-
 
         #disctance aux ghosts
         #manhattanDistance distance de bloc a bloc
@@ -147,31 +145,45 @@ class AlphaBetaAgent(CaptureAgent):
              return currentGameState.getScore()
 
         #Score maximal pour le Pacman
-        def maxLevel(gameState,depth):
+        def maxLevel(gameState,depth,agentIndex):
+
             currDepth = depth + 1
             if gameState.isOver() or currDepth==self.depth:   #Terminal Test
-                return scoreEvaluationFunction(gameState)
+                return evalFunctionPacman(gameState, agentIndex)
             maxvalue = -999999
             actions = gameState.getLegalActions(0)   #liste des actions legales pour le pacman
             for action in actions:
-                successor= gameState.generateSuccessor(0,action)    #les coups laisses au choix du fantome
-                maxvalue = max (maxvalue,minLevel(successor,currDepth,1))   #fonction reccursive minimax
+                successor= gameState.generateSuccessor(0,action)
+
+                """ 1er Agent de notre equipe"""
+                if agentIndex==0:
+                    maxvalue = max (maxvalue,minLevel(successor,currDepth,1))
+
+                """ 2eme Agent de notre equipe"""
+                if agentIndex==2:
+                    maxvalue = max (maxvalue,minLevel(successor,currDepth,3))
 
             return maxvalue
 
         #Score minimal pour un ghost
         def minLevel(gameState,depth,agentIndex):
+
             minvalue = 999999
             if gameState.isOver():   #Terminal Test
-                return scoreEvaluationFunction(gameState)
+                return evalFunctionPacman(gameState, agentIndex)
             actions = gameState.getLegalActions(agentIndex)
 
             for action in actions:
                 successor= gameState.generateSuccessor(agentIndex,action)
-                if agentIndex == (gameState.getNumAgents()-1):
-                    minvalue = min (minvalue,maxLevel(successor,depth))
-                else:
+
+                """ 1er Agent de l'equipe adverse"""
+                if agentIndex==1:
+                    minvalue = min (minvalue,maxLevel(successor,depth,2))
+
+                """ 2eme Agent de l'equipe adverse"""
+                if agentIndex==3:
                     minvalue = min(minvalue,minLevel(successor,depth,(agentIndex+1)%4))
+
 
             return minvalue
 
